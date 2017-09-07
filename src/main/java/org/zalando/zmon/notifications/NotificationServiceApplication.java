@@ -60,10 +60,6 @@ public class NotificationServiceApplication {
     @Autowired
     EscalationConfigSource escalationConfigSource;
 
-    private static final String JAEGER = "jaeger";
-    private static final String LIGHTSTEP = "lightstep";
-    private static final String INSTANA = "instana";
-
     @Autowired
     private OpenTracingConfigProperties openTracingConfig;
 
