@@ -2,6 +2,9 @@ package org.zalando.zmon.notifications;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.common.collect.ImmutableMap;
+import com.instana.opentracing.InstanaTracerFactory;
+import io.opentracing.NoopTracerFactory;
+import io.opentracing.Tracer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -37,6 +40,8 @@ import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
+import org.zalando.zmon.notifications.config.*;
+
 @RestController
 @EnableScheduling
 @EnableConfigurationProperties
@@ -54,6 +59,27 @@ public class NotificationServiceApplication {
 
     @Autowired
     EscalationConfigSource escalationConfigSource;
+
+    private static final String JAEGER = "jaeger";
+    private static final String LIGHTSTEP = "lightstep";
+    private static final String INSTANA = "instana";
+
+    @Autowired
+    private OpenTracingConfigProperties openTracingConfig;
+
+    @Bean
+    public Tracer tracer() {
+        Tracer tracer = NoopTracerFactory.create();
+        if (OpenTracingProvider.JAEGER.equalsIgnoreCase(openTracingConfig.getTracingProvider())){
+            tracer = new JaegerConfig(openTracingConfig).generateTracer();
+        } else if (OpenTracingProvider.LIGHTSTEP.equalsIgnoreCase(openTracingConfig.getTracingProvider())){
+            //TODO: Enable lightstep tracing only when lightstep infra is available after proper testing
+            //tracer = new LightStepConfig(openTracingConfig).generateTracer();
+        } else if (OpenTracingProvider.INSTANA.equalsIgnoreCase(openTracingConfig.getTracingProvider())) {
+            tracer = InstanaTracerFactory.create();
+        }
+        return tracer;
+    }
 
     @Bean
     TokenInfoService getTokenInfoService(final NotificationServiceConfig config, final PreSharedKeyStore preSharedKeyStore) {
