@@ -32,3 +32,9 @@ notifications:
 mobile:
   data_service_url:
   read_scope:
+
+opentracing:
+  spring:
+    cloud:
+      websocket:
+        enabled: false
